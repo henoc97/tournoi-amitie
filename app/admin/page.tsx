@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -14,41 +12,137 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { 
-  Settings, 
-  Plus, 
-  Edit, 
-  Save, 
-  Users, 
-  Calendar, 
+} from "@/components/ui/table";
+import {
+  Users,
+  Calendar,
   Target,
   Trophy,
-  Shield
-} from 'lucide-react';
+  Shield,
+  Trash,
+  MoreVertical,
+  Edit,
+} from "lucide-react";
+import AddMatchDialog from "./addMatch";
+import AddEquipeDialog from "./addEquipe";
+import { getMatchStatus } from "@/helpers/getMatchStatus";
+import EditMatchDialog from "./editMatch";
+import LiveMatchDialog from "./liveMatch";
+import AddPouleDialog from "./addPoule";
+import { Poule } from "@/entities/Poule";
+import { deletePoule, getPoules } from "@/services/pouleService";
+import { getEquipes } from "@/services/equipeService";
+import { Equipe } from "@/entities/Equipe";
+import { Joueur } from "@/entities/Joueur";
+import { deleteJoueur, getJoueurs } from "@/services/joueurService";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import EditJoueurDialog from "./editJoueur";
+import { deleteMatch, getMatchs } from "@/services/matchService";
+import { Match } from "@/entities/Match";
+import AddJoueurDialog from "./addJoueur";
 
 export default function AdminPage() {
-  const [selectedMatch, setSelectedMatch] = useState<string | null>(null);
+  const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
+  const [dialogType, setDialogType] = useState<"edit" | "live" | null>(null);
+  const [poules, setPoules] = useState<Poule[]>([]);
+  const [equipes, setEquipes] = useState<Equipe[]>([]);
+  const [joueurs, setJoueurs] = useState<(Joueur & { equipeNom?: string })[]>(
+    []
+  );
+  const [matchs, setMatchs] = useState<Match[]>([]);
+  const [openEdit, setOpenEdit] = useState<any>(false);
+  const [openLive, setOpenLive] = useState<any>(false);
 
-  // Mock data pour l'administration
-  const mockMatchs = [
-    {
-      id: '1',
-      date: '2025-01-16',
-      heure: '15:30',
-      equipes: { domicile: 'FC Lions', exterieur: 'AS Eagles' },
-      score: { domicile: 0, exterieur: 0 },
-      termine: false
-    },
-    {
-      id: '2',
-      date: '2025-01-16',
-      heure: '17:00',
-      equipes: { domicile: 'United FC', exterieur: 'Real Madrid' },
-      score: { domicile: 2, exterieur: 1 },
-      termine: true
+  const fetchPoules = async () => {
+    try {
+      const data = await getPoules();
+      data.sort((a, b) => a.nom.localeCompare(b.nom));
+      setPoules(data);
+    } catch (error) {
+      console.error("Erreur lors du chargement des poules :", error);
     }
-  ];
+  };
+
+  const fetchEquipes = async () => {
+    try {
+      const data = await getEquipes();
+      data.sort((a, b) => {
+        const pouleA = poules.find((p) => p.id === a.pouleId)?.nom || "";
+        const pouleB = poules.find((p) => p.id === b.pouleId)?.nom || "";
+        return pouleA.localeCompare(pouleB) || a.nom.localeCompare(b.nom);
+      });
+      setEquipes(data);
+    } catch (error) {
+      console.error("Erreur lors du chargement des poules :", error);
+    }
+  };
+
+  const fetchJoueurs = async () => {
+    try {
+      const joueursData = await getJoueurs();
+
+      const joueursAvecEquipe = joueursData.map((joueur) => {
+        const equipe = equipes.find((eq) => eq.id === joueur.equipeId);
+        return {
+          ...joueur,
+          equipeNom: equipe ? equipe.nom : "Équipe inconnue",
+        };
+      });
+
+      joueursAvecEquipe.sort(
+        (a, b) =>
+          a.equipeNom!.localeCompare(b.equipeNom!) || a.nom.localeCompare(b.nom)
+      );
+
+      setJoueurs(joueursAvecEquipe);
+    } catch (error) {
+      console.error("Erreur lors du chargement des joueurs :", error);
+    }
+  };
+
+  const fetchMatchs = async () => {
+    try {
+      const data = await getMatchs();
+      // Tri optionnel par date croissante :
+      data.sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
+      setMatchs(data);
+    } catch (error) {
+      console.error("Erreur lors du chargement des matchs :", error);
+    }
+  };
+
+  const handleDeletePoule = async (id: string) => {
+    if (!confirm("Voulez-vous vraiment supprimer cette poule ?")) return;
+
+    try {
+      await deletePoule(id);
+      // Recharger la liste des poules
+      fetchPoules();
+    } catch (error) {
+      console.error("Erreur lors de la suppression :", error);
+      alert("Impossible de supprimer la poule. Veuillez réessayer.");
+    }
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      await fetchPoules();
+      await fetchEquipes();
+      await fetchJoueurs();
+      await fetchMatchs();
+    };
+
+    loadData().catch((error) => {
+      console.error("Erreur lors du chargement des données :", error);
+    });
+  }, []);
 
   return (
     <div className="space-y-8">
@@ -96,17 +190,29 @@ export default function AdminPage() {
       {/* Admin Tabs */}
       <Tabs defaultValue="matchs" className="w-full">
         <TabsList className="grid w-full grid-cols-4 bg-gray-100">
-          <TabsTrigger value="matchs" className="data-[state=active]:bg-yellow-400 data-[state=active]:text-gray-900">
+          <TabsTrigger
+            value="matchs"
+            className="data-[state=active]:bg-yellow-400 data-[state=active]:text-gray-900"
+          >
             Matchs
           </TabsTrigger>
-          <TabsTrigger value="equipes" className="data-[state=active]:bg-yellow-400 data-[state=active]:text-gray-900">
+          <TabsTrigger
+            value="equipes"
+            className="data-[state=active]:bg-yellow-400 data-[state=active]:text-gray-900"
+          >
             Équipes
           </TabsTrigger>
-          <TabsTrigger value="joueurs" className="data-[state=active]:bg-yellow-400 data-[state=active]:text-gray-900">
+          <TabsTrigger
+            value="joueurs"
+            className="data-[state=active]:bg-yellow-400 data-[state=active]:text-gray-900"
+          >
             Joueurs
           </TabsTrigger>
-          <TabsTrigger value="tournoi" className="data-[state=active]:bg-yellow-400 data-[state=active]:text-gray-900">
-            Tournoi
+          <TabsTrigger
+            value="poules"
+            className="data-[state=active]:bg-yellow-400 data-[state=active]:text-gray-900"
+          >
+            Poules
           </TabsTrigger>
         </TabsList>
 
@@ -118,62 +224,127 @@ export default function AdminPage() {
                   <Calendar className="h-5 w-5 mr-2 text-yellow-600" />
                   Gestion des matchs
                 </div>
-                <Button className="bg-yellow-400 hover:bg-yellow-500 text-gray-900">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nouveau match
-                </Button>
+                {/* Dialog add new match */}
+                <AddMatchDialog onMatchCreated={fetchMatchs} />
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Heure</TableHead>
-                    <TableHead>Match</TableHead>
-                    <TableHead>Score</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {mockMatchs.map((match) => (
-                    <TableRow key={match.id}>
-                      <TableCell>{match.date}</TableCell>
-                      <TableCell>{match.heure}</TableCell>
-                      <TableCell>
-                        {match.equipes.domicile} vs {match.equipes.exterieur}
-                      </TableCell>
-                      <TableCell>
-                        {match.termine ? (
-                          <span className="font-bold">
-                            {match.score.domicile} - {match.score.exterieur}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">- - -</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={match.termine ? "default" : "secondary"}
-                          className={match.termine ? "bg-green-100 text-green-800" : ""}
-                        >
-                          {match.termine ? "Terminé" : "À venir"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          className="border-yellow-400 text-yellow-600 hover:bg-yellow-50"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
+              {matchs.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Interface de gestion des matchs</p>
+                  <p className="text-sm">
+                    Ajouter, modifier ou supprimer des matchs
+                  </p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Heure</TableHead>
+                      <TableHead>Match</TableHead>
+                      <TableHead>Score</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {matchs.map((match) => {
+                      const status = getMatchStatus(match);
+                      return (
+                        <TableRow key={match.id}>
+                          <TableCell>{match.date}</TableCell>
+                          <TableCell>{match.heure}</TableCell>
+                          <TableCell>
+                            {match.equipes.domicile.nom} vs{" "}
+                            {match.equipes.exterieur.nom}
+                          </TableCell>
+                          <TableCell>
+                            {match.score ? (
+                              <span className="font-bold">
+                                {match.score.domicile} - {match.score.exterieur}
+                              </span>
+                            ) : status === "En cours" ? (
+                              <span className="text-gray-400">0 - 0</span>
+                            ) : (
+                              <span className="text-gray-400">- - -</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={match.termine ? "default" : "secondary"}
+                              className={
+                                status === "Terminé"
+                                  ? "bg-green-100 text-green-800"
+                                  : status === "En cours"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : ""
+                              }
+                            >
+                              {status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    if (status === "À venir") {
+                                      setOpenEdit(true);
+                                    } else if (status === "En cours") {
+                                      setOpenLive(true);
+                                    }
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  <span className="font-bold">Modifier</span>
+                                </DropdownMenuItem>
+
+                                <DropdownMenuItem
+                                  onClick={async () => {
+                                    if (confirm("Supprimer ce match ?")) {
+                                      await deleteMatch(match.id!);
+                                      fetchMatchs();
+                                    }
+                                  }}
+                                  className="text-red-600"
+                                >
+                                  <Trash className="h-4 w-4 mr-2" />{" "}
+                                  <span className="font-bold">Supprimer</span>
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                            {/* Dialogs contrôlés */}
+                            {status === "À venir" && (
+                              <EditMatchDialog
+                                match={match}
+                                open={openEdit}
+                                onOpenChange={setOpenEdit}
+                                onMatchUpdated={fetchMatchs}
+                              />
+                            )}
+
+                            {status === "En cours" && (
+                              <LiveMatchDialog
+                                match={match}
+                                open={openLive}
+                                onOpenChange={setOpenLive}
+                                onMatchUpdated={fetchMatchs}
+                              />
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -186,18 +357,44 @@ export default function AdminPage() {
                   <Users className="h-5 w-5 mr-2 text-yellow-600" />
                   Gestion des équipes
                 </div>
-                <Button className="bg-yellow-400 hover:bg-yellow-500 text-gray-900">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nouvelle équipe
-                </Button>
+                {/* Dialog add new team */}
+                <AddEquipeDialog onEquipeCreated={fetchEquipes} />
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-gray-500">
-                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Interface de gestion des équipes</p>
-                <p className="text-sm">Ajouter, modifier ou supprimer des équipes</p>
-              </div>
+              {equipes.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Interface de gestion des équipes</p>
+                  <p className="text-sm">
+                    Ajouter, modifier ou supprimer des équipes
+                  </p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nom</TableHead>
+                      <TableHead>Ville</TableHead>
+                      <TableHead>Poule</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {equipes.map((equipe) => {
+                      const poule = poules.find((p) => p.id === equipe.pouleId);
+                      return (
+                        <TableRow key={equipe.id}>
+                          <TableCell>{equipe.nom}</TableCell>
+                          <TableCell>{equipe.ville || "-"}</TableCell>
+                          <TableCell>
+                            {poule ? poule.nom : "Non définie"}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -210,83 +407,127 @@ export default function AdminPage() {
                   <Target className="h-5 w-5 mr-2 text-yellow-600" />
                   Gestion des joueurs
                 </div>
-                <Button className="bg-yellow-400 hover:bg-yellow-500 text-gray-900">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nouveau joueur
-                </Button>
+                {/* Dialog add new player */}
+                <AddJoueurDialog onJoueurCreated={fetchJoueurs} />
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-gray-500">
-                <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Interface de gestion des joueurs</p>
-                <p className="text-sm">Ajouter des joueurs et gérer leurs statistiques</p>
-              </div>
+              {joueurs.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Interface de gestion des joueurs</p>
+                  <p className="text-sm">
+                    Ajouter des joueurs et gérer leurs statistiques
+                  </p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nom</TableHead>
+                      <TableHead>Équipe</TableHead>
+                      <TableHead>Buts</TableHead>
+                      <TableHead>Passes</TableHead>
+                      <TableHead>Cartons Jaunes</TableHead>
+                      <TableHead>Cartons Rouges</TableHead>
+                      <TableHead>Matchs</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {joueurs.map((joueur) => (
+                      <TableRow key={joueur.id}>
+                        <TableCell>{joueur.nom}</TableCell>
+                        <TableCell>{joueur.equipeNom}</TableCell>
+                        <TableCell>{joueur.buts}</TableCell>
+                        <TableCell>{joueur.passes}</TableCell>
+                        <TableCell>{joueur.cartonsJaunes}</TableCell>
+                        <TableCell>{joueur.cartonsRouges}</TableCell>
+                        <TableCell>{joueur.matchs}</TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem asChild>
+                                <EditJoueurDialog
+                                  joueur={joueur}
+                                  onJoueurUpdated={fetchJoueurs}
+                                />
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={async () => {
+                                  if (confirm("Supprimer ce joueur ?")) {
+                                    await deleteJoueur(joueur.id!);
+                                    fetchJoueurs();
+                                  }
+                                }}
+                                className="text-red-600"
+                              >
+                                <Trash className="h-4 w-4 mr-2" />
+                                <span className="font-bold">Supprimer</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="tournoi" className="space-y-4">
+        <TabsContent value="poules" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Settings className="h-5 w-5 mr-2 text-yellow-600" />
-                Configuration du tournoi
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Shield className="h-5 w-5 mr-2 text-yellow-600" />
+                  Gestion des poules
+                </div>
+                <AddPouleDialog onPouleCreated={fetchPoules} />
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="tournoi-nom">Nom du tournoi</Label>
-                    <Input 
-                      id="tournoi-nom" 
-                      defaultValue="Tournoi de l'Amitié 2025"
-                      className="border-yellow-400/30 focus:border-yellow-400"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="date-debut">Date de début</Label>
-                    <Input 
-                      id="date-debut" 
-                      type="date" 
-                      defaultValue="2025-01-15"
-                      className="border-yellow-400/30 focus:border-yellow-400"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="date-fin">Date de fin</Label>
-                    <Input 
-                      id="date-fin" 
-                      type="date" 
-                      defaultValue="2025-02-01"
-                      className="border-yellow-400/30 focus:border-yellow-400"
-                    />
-                  </div>
+            <CardContent>
+              {poules.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Interface de gestion des poules</p>
+                  <p className="text-sm">
+                    Créer des poules et gérer leur composition
+                  </p>
                 </div>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="lieu">Lieu</Label>
-                    <Input 
-                      id="lieu" 
-                      defaultValue="Complexe Sportif Municipal"
-                      className="border-yellow-400/30 focus:border-yellow-400"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="phase">Phase actuelle</Label>
-                    <Input 
-                      id="phase" 
-                      defaultValue="Phase de groupes"
-                      className="border-yellow-400/30 focus:border-yellow-400"
-                    />
-                  </div>
-                  <Button className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900">
-                    <Save className="h-4 w-4 mr-2" />
-                    Sauvegarder les modifications
-                  </Button>
-                </div>
-              </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nom de la poule</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {poules.map((poule) => (
+                      <TableRow key={poule.id}>
+                        <TableCell>{poule.nom}</TableCell>
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDeletePoule(poule.id!)}
+                            aria-label={`Supprimer la poule ${poule.nom}`}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -299,15 +540,24 @@ export default function AdminPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button variant="outline" className="border-yellow-400 text-yellow-600 hover:bg-yellow-50">
+            <Button
+              variant="outline"
+              className="border-yellow-400 text-yellow-600 hover:bg-yellow-50"
+            >
               <Calendar className="h-4 w-4 mr-2" />
               Programmer un match
             </Button>
-            <Button variant="outline" className="border-yellow-400 text-yellow-600 hover:bg-yellow-50">
+            <Button
+              variant="outline"
+              className="border-yellow-400 text-yellow-600 hover:bg-yellow-50"
+            >
               <Target className="h-4 w-4 mr-2" />
               Saisir un résultat
             </Button>
-            <Button variant="outline" className="border-yellow-400 text-yellow-600 hover:bg-yellow-50">
+            <Button
+              variant="outline"
+              className="border-yellow-400 text-yellow-600 hover:bg-yellow-50"
+            >
               <Trophy className="h-4 w-4 mr-2" />
               Mettre à jour classement
             </Button>
