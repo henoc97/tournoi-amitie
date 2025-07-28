@@ -28,6 +28,8 @@ export default function LiveMatchDialog({
   onOpenChange: (open: boolean) => void;
   onMatchUpdated?: () => void;
 }) {
+  if (!match) return null;
+
   const [score, setScore] = useState({
     domicile: match.score?.domicile || 0,
     exterieur: match.score?.exterieur || 0,
@@ -108,13 +110,15 @@ export default function LiveMatchDialog({
       }
 
       // ✅ MAJ classement (logique à ajuster)
-      await updateClassement(
-        match.pouleId!,
-        match.phase,
-        match.equipes,
-        score,
-        termine
-      );
+      if (match.phase === "POULE" && match.pouleId) {
+        await updateClassement(
+          match.pouleId,
+          match.phase,
+          match.equipes,
+          score,
+          termine
+        );
+      }
 
       alert("Match mis à jour !");
       onOpenChange(false);

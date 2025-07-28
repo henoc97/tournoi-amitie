@@ -57,6 +57,7 @@ export default function AdminPage() {
   const [matchs, setMatchs] = useState<Match[]>([]);
   const [openEdit, setOpenEdit] = useState<any>(false);
   const [openLive, setOpenLive] = useState<any>(false);
+  const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
 
   const fetchPoules = async () => {
     try {
@@ -295,6 +296,7 @@ export default function AdminPage() {
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem
                                   onClick={() => {
+                                    setCurrentMatch(match);
                                     if (status === "À venir") {
                                       setOpenEdit(true);
                                     } else if (status === "En cours") {
@@ -323,7 +325,7 @@ export default function AdminPage() {
                             {/* Dialogs contrôlés */}
                             {status === "À venir" && (
                               <EditMatchDialog
-                                match={match}
+                                match={currentMatch!}
                                 open={openEdit}
                                 onOpenChange={setOpenEdit}
                                 onMatchUpdated={fetchMatchs}
@@ -332,7 +334,7 @@ export default function AdminPage() {
 
                             {status === "En cours" && (
                               <LiveMatchDialog
-                                match={match}
+                                match={currentMatch!}
                                 open={openLive}
                                 onOpenChange={setOpenLive}
                                 onMatchUpdated={fetchMatchs}

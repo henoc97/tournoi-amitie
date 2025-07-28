@@ -13,22 +13,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Save } from "lucide-react";
 import { createMatch } from "@/services/matchService";
-import { getPoules } from "@/services/pouleService";
-import { getEquipesByPoule } from "@/services/equipeService";
 import { PHASES } from "@/entities/phases";
-import { ClassementItem } from "@/entities/Poule";
+import { Equipe } from "@/entities/Equipe";
+import { Poule } from "@/entities/Poule";
+import { TournoiManager } from "@/helpers/tournoiManager";
+import { getPoules } from "@/services/pouleService";
 
-type Poule = {
-  id: string;
-  nom: string;
-  classement: ClassementItem[];
-};
-
-type Equipe = {
-  id: string;
-  nom: string;
-  pairEquipe?: { id: string; nom: string };
-};
+const manager = new TournoiManager();
 
 type AddMatchDialogProps = {
   onMatchCreated?: () => void;
@@ -46,82 +37,41 @@ export default function AddMatchDialog({
     pouleId: "",
   });
 
-  const [poules, setPoules] = useState<Poule[]>([]);
   const [equipes, setEquipes] = useState<Equipe[]>([]);
+  const [poules, setPoules] = useState<Poule[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
 
-  // Charger toutes les poules une fois pour les poules classiques
+  // Charger les poules une seule fois
   useEffect(() => {
-    const fetchPoules = async () => {
-      const res = await getPoules();
-      setPoules(res as Poule[]);
+    const loadPoules = async () => {
+      const allPoules = await getPoules();
+      setPoules(allPoules);
     };
-    fetchPoules();
+    loadPoules();
   }, []);
 
-  // Charger les équipes si phase de poule
+  // Charger les équipes selon la phase/poule
   useEffect(() => {
-    if (newMatch.phase === "POULE" && newMatch.pouleId) {
-      const fetchEquipes = async () => {
-        const res = await getEquipesByPoule(newMatch.pouleId);
-        setEquipes(res);
-      };
-      fetchEquipes();
-    } else if (newMatch.phase === "QUART") {
-      fetchQuartEquipes();
-    } else {
-      setEquipes([]);
-    }
+    const loadEquipes = async () => {
+      if (newMatch.phase === "POULE" && newMatch.pouleId) {
+        const equipes = await manager.getEquipesByPouleId(newMatch.pouleId);
+        setEquipes(equipes);
+      } else if (newMatch.phase === "QUART") {
+        const equipes = await manager.getQualifiesPourQuarts();
+        setEquipes(equipes);
+      } else if (newMatch.phase === "DEMI") {
+        const equipes = await manager.getQualifiesPourDemi();
+        setEquipes(equipes);
+      } else if (newMatch.phase === "FINALE") {
+        const equipes = await manager.getQualifiesPourFinale();
+        setEquipes(equipes);
+      } else {
+        setEquipes([]);
+      }
+    };
+    loadEquipes();
   }, [newMatch.phase, newMatch.pouleId]);
-
-  // Fonction pour préparer les quarts
-  const fetchQuartEquipes = async () => {
-    const poulesRes = await getPoules();
-    // poulesRes.sort((a, b) => a.nom.localeCompare(b.nom));
-    const poules = poulesRes as Poule[];
-    const paires: { poule1: Poule; poule2: Poule }[] = [];
-
-    for (let i = 0; i < poules.length; i += 2) {
-      if (i + 1 < poules.length) {
-        paires.push({ poule1: poules[i], poule2: poules[i + 1] });
-      }
-    }
-
-    const candidats: Equipe[] = [];
-
-    paires.forEach(({ poule1, poule2 }) => {
-      const p1 = poule1.classement.find((c) => c.position === 1);
-      const d2 = poule2.classement.find((c) => c.position === 2);
-
-      const p2 = poule2.classement.find((c) => c.position === 1);
-      const d1 = poule1.classement.find((c) => c.position === 2);
-
-      if (p1 && d2) {
-        candidats.push({
-          id: p1.equipeId,
-          nom: `1er ${poule1.nom}`,
-          pairEquipe: {
-            id: d2.equipeId,
-            nom: `2e ${poule2.nom}`,
-          },
-        });
-      }
-
-      if (p2 && d1) {
-        candidats.push({
-          id: p2.equipeId,
-          nom: `1er ${poule2.nom}`,
-          pairEquipe: {
-            id: d1.equipeId,
-            nom: `2e ${poule1.nom}`,
-          },
-        });
-      }
-    });
-
-    setEquipes(candidats);
-  };
 
   const handleSave = async () => {
     if (
@@ -135,7 +85,6 @@ export default function AddMatchDialog({
     }
 
     setLoading(true);
-
     try {
       await createMatch({
         date: newMatch.date,
@@ -173,8 +122,7 @@ export default function AddMatchDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="bg-yellow-400 hover:bg-yellow-500 text-gray-900">
-          <Plus className="h-4 w-4 mr-2" />
-          Nouveau match
+          <Plus className="h-4 w-4 mr-2" /> Nouveau match
         </Button>
       </DialogTrigger>
 
@@ -183,7 +131,6 @@ export default function AddMatchDialog({
           <DialogTitle>Créer un nouveau match</DialogTitle>
         </DialogHeader>
 
-        {/* Phase */}
         <div className="space-y-2">
           <Label>Phase</Label>
           <select
@@ -208,107 +155,80 @@ export default function AddMatchDialog({
           </select>
         </div>
 
-        {/* Poule */}
         {newMatch.phase === "POULE" && (
           <div className="space-y-2">
             <Label>Poule</Label>
             <select
               value={newMatch.pouleId}
               onChange={(e) =>
-                setNewMatch({
-                  ...newMatch,
-                  pouleId: e.target.value,
-                  domicile: { id: "", nom: "" },
-                  exterieur: { id: "", nom: "" },
-                })
+                setNewMatch({ ...newMatch, pouleId: e.target.value })
               }
               className="w-full rounded border border-gray-300 px-3 py-2"
             >
               <option value="">-- Sélectionner une poule --</option>
-              {poules.map((poule) => (
-                <option key={poule.id} value={poule.id}>
-                  {poule.nom}
+              {poules.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nom}
                 </option>
               ))}
             </select>
           </div>
         )}
 
-        {/* Équipe domicile */}
         {equipes.length > 0 && (
-          <div className="space-y-2">
-            <Label>Équipe domicile</Label>
-            <select
-              value={newMatch.domicile.id}
-              onChange={(e) => {
-                const selectedId = e.target.value;
-                const selectedEquipe = equipes.find(
-                  (eq) => eq.id === selectedId
-                );
-                if (!selectedEquipe) return;
-
-                let exterieur = { id: "", nom: "" };
-                if (newMatch.phase === "QUART" && selectedEquipe.pairEquipe) {
-                  exterieur = {
-                    id: selectedEquipe.pairEquipe.id,
-                    nom: selectedEquipe.pairEquipe.nom,
-                  };
-                }
-
-                setNewMatch({
-                  ...newMatch,
-                  domicile: { id: selectedEquipe.id, nom: selectedEquipe.nom },
-                  exterieur,
-                });
-              }}
-              className="w-full rounded border border-gray-300 px-3 py-2"
-            >
-              <option value="">-- Choisir l'équipe domicile --</option>
-              {equipes.map((equipe) => (
-                <option key={equipe.id} value={equipe.id}>
-                  {equipe.nom}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {/* Équipe extérieur */}
-        {equipes.length > 0 && newMatch.domicile.id && (
-          <div className="space-y-2">
-            <Label>Équipe extérieur</Label>
-            <select
-              value={newMatch.exterieur.id}
-              onChange={(e) => {
-                const selectedId = e.target.value;
-                const selectedEquipe = equipes.find(
-                  (eq) => eq.id === selectedId
-                );
-                if (selectedEquipe) {
+          <>
+            <div className="space-y-2">
+              <Label>Équipe domicile</Label>
+              <select
+                value={newMatch.domicile.id}
+                onChange={(e) => {
+                  const selected = equipes.find(
+                    (eq) => eq.id === e.target.value
+                  );
                   setNewMatch({
                     ...newMatch,
-                    exterieur: {
-                      id: selectedEquipe.id,
-                      nom: selectedEquipe.nom,
-                    },
+                    domicile: selected || { id: "", nom: "" },
                   });
-                }
-              }}
-              className="w-full rounded border border-gray-300 px-3 py-2"
-            >
-              <option value="">-- Choisir l'équipe extérieur --</option>
-              {equipes
-                .filter((e) => e.id !== newMatch.domicile.id)
-                .map((equipe) => (
-                  <option key={equipe.id} value={equipe.id}>
-                    {equipe.nom}
+                }}
+                className="w-full rounded border border-gray-300 px-3 py-2"
+              >
+                <option value="">-- Sélectionner l'équipe domicile --</option>
+                {equipes.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.nom}
                   </option>
                 ))}
-            </select>
-          </div>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Équipe extérieur</Label>
+              <select
+                value={newMatch.exterieur.id}
+                onChange={(e) => {
+                  const selected = equipes.find(
+                    (eq) => eq.id === e.target.value
+                  );
+                  setNewMatch({
+                    ...newMatch,
+                    exterieur: selected || { id: "", nom: "" },
+                  });
+                }}
+                className="w-full rounded border border-gray-300 px-3 py-2"
+              >
+                <option value="">-- Sélectionner l'équipe extérieur --</option>
+                {equipes
+                  .filter((e) => e.id !== newMatch.domicile.id)
+                  .map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.nom}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          </>
         )}
 
-        {/* Date */}
         <div className="space-y-2">
           <Label>Date</Label>
           <Input
@@ -318,7 +238,6 @@ export default function AddMatchDialog({
           />
         </div>
 
-        {/* Heure */}
         <div className="space-y-2">
           <Label>Heure</Label>
           <Input

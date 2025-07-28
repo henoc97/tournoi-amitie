@@ -24,6 +24,8 @@ export default function EditMatchDialog({
   onOpenChange: (open: boolean) => void;
   onMatchUpdated?: () => void;
 }) {
+  if (!match) return null;
+
   const [values, setValues] = useState({ ...match });
   const [loading, setLoading] = useState(false);
 
