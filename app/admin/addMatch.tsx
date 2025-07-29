@@ -46,6 +46,7 @@ export default function AddMatchDialog({
   useEffect(() => {
     const loadPoules = async () => {
       const allPoules = await getPoules();
+      allPoules.sort((a, b) => a.nom.localeCompare(b.nom));
       setPoules(allPoules);
     };
     loadPoules();

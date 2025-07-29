@@ -7,6 +7,7 @@ import { Award, Trophy, Crown, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Match } from "@/entities/Match";
 import { getMatchsParPhase } from "@/services/matchService";
+import Image from "next/image";
 
 export default function PhasesFinalesPage() {
   const [pouleMatchs, setPouleMatchs] = useState<Match[]>([]);
@@ -171,6 +172,16 @@ export default function PhasesFinalesPage() {
           </CardContent>
         </Card>
       )}
+
+      <div className="w-full mt-8">
+        <Image
+          src="/price.jpg"
+          alt="Prix Tournoi de l'Amitié"
+          width={1600}
+          height={600}
+          className="w-full h-auto object-contain rounded-lg"
+        />
+      </div>
 
       {/* Règlement */}
       <Card>

@@ -38,6 +38,7 @@ export default function AddEquipeDialog({
     const fetchPoules = async () => {
       try {
         const data = await getPoules();
+        data.sort((a, b) => a.nom.localeCompare(b.nom));
         setPoules(data);
       } catch (error) {
         console.error("Erreur en récupérant les poules", error);
@@ -58,32 +59,7 @@ export default function AddEquipeDialog({
     try {
       const docRef = await createEquipe(newEquipe);
 
-      const poule = poules.find((p) => p.id === newEquipe.pouleId);
-      if (!poule) {
-        throw new Error("Poule introuvable !");
-      }
-
-      const newClassementItem: ClassementItem = {
-        position: poule.classement?.length + 1 || 1,
-        equipeId: docRef.id,
-        points: 0,
-        joues: 0,
-        gagnes: 0,
-        nuls: 0,
-        perdus: 0,
-        butsPour: 0,
-        butsContre: 0,
-        difference: 0,
-      };
-
-      const classementActuel = Array.isArray(poule.classement)
-        ? poule.classement
-        : [];
-      const newClassement = [...classementActuel, newClassementItem];
-
-      await updatePoule(poule.id!, { classement: newClassement });
-
-      alert("Équipe ajoutée et classement mis à jour !");
+      alert("Équipe ajoutée !");
       setOpen(false); // Ferme le modal
       setNewEquipe({
         nom: "",

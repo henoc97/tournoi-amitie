@@ -48,7 +48,7 @@ export default function Home() {
           domicile: m.equipes.domicile.nom,
           exterieur: m.equipes.exterieur.nom,
           heure: m.heure,
-          terrain: m.pouleId ? `Poule ${m.pouleId}` : m.phase,
+          date: m.date.split("-").reverse().join("-"),
         }))
       );
 
@@ -170,12 +170,10 @@ export default function Home() {
                 variant="secondary"
                 className="bg-yellow-100 text-yellow-800"
               >
-                Aujourd&apos;hui
+                {"à venir".toLocaleUpperCase()}
               </Badge>
             </div>
-            <CardDescription>
-              Les matchs à venir aujourd&apos;hui
-            </CardDescription>
+            <CardDescription>Les matchs à venir</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {prochainMatchs.map((match) => (
@@ -187,7 +185,7 @@ export default function Home() {
                   <div className="font-medium text-sm">
                     {match.domicile} vs {match.exterieur}
                   </div>
-                  <div className="text-xs text-gray-500">{match.terrain}</div>
+                  <div className="text-xs text-gray-500">{match.date}</div>
                 </div>
                 <div className="text-sm font-mono bg-white px-2 py-1 rounded">
                   {match.heure}
@@ -265,7 +263,7 @@ export default function Home() {
                 </div>
               </div>
             ))}
-            <Link href="/stats/buteurs">
+            <Link href="/stats">
               <Button variant="outline" className="w-full group">
                 Voir le classement complet
                 <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform text-yellow-600" />
