@@ -1,12 +1,51 @@
-import './globals.css';
-import type { Metadata } from 'next';
-import { Navigation } from '@/components/navigation';
-import { Toaster } from '@/components/ui/sonner';
-
+import "./globals.css";
+import type { Metadata } from "next";
+import { Navigation } from "@/components/navigation";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
-  title: 'Tournoi de Football - Suivi en temps réel',
-  description: 'Application moderne pour suivre votre tournoi de football : classements, matchs, statistiques et phases finales',
+  title: "Tournoi de l'Amitié - Suivi en temps réel",
+  description:
+    "Le Tournoi de l'Amitié : application moderne pour suivre votre tournoi de football en temps réel, classements, matchs, statistiques et phases finales.",
+  metadataBase: new URL("https://tournoi-amitie.vercel.app/"),
+  openGraph: {
+    title: "Tournoi de l'Amitié - Suivi en temps réel",
+    description:
+      "Suivez le Tournoi de l'Amitié avec les classements, les matchs en direct, les statistiques et les phases finales.",
+    url: "https://tournoi-amitie.vercel.app/",
+    siteName: "Tournoi de l'Amitié",
+    locale: "fr_FR",
+    type: "website",
+    images: [
+      {
+        url: "https://tournoi-amitie.vercel.app/logo.png",
+        secureUrl: "https://tournoi-amitie.vercel.app/logo.png",
+        type: "image/png",
+        width: 1200,
+        height: 630,
+        alt: "Tournoi de l'Amitié",
+      },
+      {
+        url: "https://tournoi-amitie.vercel.app/price.jpg",
+        secureUrl: "https://tournoi-amitie.vercel.app/price.jpg",
+        type: "image/jpg",
+        width: 1200,
+        height: 630,
+        alt: "Tournoi de l'Amitié",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tournoi de l'Amitié - Suivi en temps réel",
+    description:
+      "Suivi en direct du Tournoi de l'Amitié : matchs, scores et classements en temps réel.",
+    images: [
+      "https://tournoi-amitie.vercel.app/logo.png",
+      "https://tournoi-amitie.vercel.app/price.jpg",
+    ],
+  },
+  viewport: "width=device-width, initial-scale=1",
 };
 
 export default function RootLayout({
@@ -19,9 +58,7 @@ export default function RootLayout({
       <body>
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-yellow-50">
           <Navigation />
-          <main className="container mx-auto px-4 py-8">
-            {children}
-          </main>
+          <main className="container mx-auto px-4 py-8">{children}</main>
           <Toaster />
         </div>
       </body>
