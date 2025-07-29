@@ -1,5 +1,5 @@
 import { db } from "./firebase";
-import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc, query, where } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc, query, where, getDoc } from "firebase/firestore";
 import { Equipe } from "@/entities/Equipe";
 
 const equipesCollection = collection(db, "equipes");
@@ -8,6 +8,22 @@ const equipesCollection = collection(db, "equipes");
 export const getEquipes = async (): Promise<Equipe[]> => {
     const snapshot = await getDocs(equipesCollection);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Equipe));
+};
+
+/**
+ * 📌 Récupérer une équipe par son ID
+ * @param id string
+ * @returns Equipe ou undefined si non trouvée
+ */
+export const getEquipeById = async (id: string): Promise<Equipe | undefined> => {
+    const ref = doc(db, "equipes", id);
+    const snapshot = await getDoc(ref);
+
+    if (snapshot.exists()) {
+        return { id: snapshot.id, ...snapshot.data() } as Equipe;
+    } else {
+        return undefined;
+    }
 };
 
 // ➕ Créer une nouvelle équipe

@@ -1,48 +1,115 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { 
-  Trophy, 
-  Calendar, 
-  Users, 
-  Target, 
+import { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import {
+  Trophy,
+  Calendar,
+  Users,
+  Target,
   Clock,
   ArrowRight,
   Flame,
-  TrendingUp
-} from 'lucide-react';
-import Link from 'next/link';
+  TrendingUp,
+} from "lucide-react";
+import Link from "next/link";
+import { AccueilManager } from "@/helpers/accueilManager";
+import { getEquipeById } from "@/services/equipeService";
 
-// Données mock
-const prochainMatchs = [
-  { id: 1, domicile: 'FC Lions', exterieur: 'AS Eagles', heure: '14:00', terrain: 'Terrain A' },
-  { id: 2, domicile: 'Red Devils', exterieur: 'Blue Sharks', heure: '15:30', terrain: 'Terrain B' },
-  { id: 3, domicile: 'Green Panthers', exterieur: 'Golden Tigers', heure: '17:00', terrain: 'Terrain A' },
-];
-
-const derniersResultats = [
-  { id: 1, domicile: 'FC Lions', exterieur: 'AS Eagles', scoreDomicile: 2, scoreExterieur: 1 },
-  { id: 2, domicile: 'Red Devils', exterieur: 'Blue Sharks', scoreDomicile: 0, scoreExterieur: 3 },
-  { id: 3, domicile: 'Green Panthers', exterieur: 'Golden Tigers', scoreDomicile: 1, scoreExterieur: 1 },
-];
-
-const topButeurs = [
-  { nom: 'Antoine Dubois', equipe: 'FC Lions', buts: 8 },
-  { nom: 'Marco Silva', equipe: 'Blue Sharks', buts: 7 },
-  { nom: 'Jean Martin', equipe: 'AS Eagles', buts: 6 },
-];
-
-const stats = [
-  { label: 'Équipes', value: '16', icon: Users, color: 'text-gray-700' },
-  { label: 'Matchs joués', value: '24', icon: Calendar, color: 'text-yellow-600' },
-  { label: 'Buts marqués', value: '78', icon: Target, color: 'text-gray-800' },
-  { label: 'Phase', value: 'Groupes', icon: Trophy, color: 'text-yellow-700' },
-];
+const manager = new AccueilManager();
 
 export default function Home() {
+  const [prochainMatchs, setProchainMatchs] = useState<any[]>([]);
+  const [derniersResultats, setDerniersResultats] = useState<any[]>([]);
+  const [topButeurs, setTopButeurs] = useState<any[]>([]);
+  const [stats, setStats] = useState<
+    { label: string; value: string; icon: any; color: string }[]
+  >([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const prochains = await manager.getProchainsMatchs();
+      const resultats = await manager.getDerniersResultats();
+      const buteurs = await manager.getTopButeurs();
+      const rawStats = await manager.getStats();
+
+      setProchainMatchs(
+        prochains.map((m) => ({
+          id: m.id,
+          domicile: m.equipes.domicile.nom,
+          exterieur: m.equipes.exterieur.nom,
+          heure: m.heure,
+          terrain: m.pouleId ? `Poule ${m.pouleId}` : m.phase,
+        }))
+      );
+
+      setDerniersResultats(
+        resultats.map((m) => ({
+          id: m.id,
+          domicile: m.equipes.domicile.nom,
+          exterieur: m.equipes.exterieur.nom,
+          scoreDomicile: m.score?.domicile ?? 0,
+          scoreExterieur: m.score?.exterieur ?? 0,
+        }))
+      );
+
+      // Suppose que `buteurs` est ton tableau de Joueur[]
+      const loadTopButeurs = async () => {
+        const buteursWithEquipe = await Promise.all(
+          buteurs.map(async (j) => {
+            const equipe = await getEquipeById(j.equipeId);
+            return {
+              nom: j.nom,
+              equipe: equipe ? equipe.nom : "Inconnu",
+              buts: j.buts ?? 0,
+            };
+          })
+        );
+
+        setTopButeurs(buteursWithEquipe);
+      };
+      loadTopButeurs();
+
+      setStats([
+        {
+          label: "Équipes",
+          value: String(rawStats.equipes),
+          icon: Users,
+          color: "text-gray-700",
+        },
+        {
+          label: "Matchs joués",
+          value: String(rawStats.matchs),
+          icon: Calendar,
+          color: "text-yellow-600",
+        },
+        {
+          label: "Buts marqués",
+          value: String(rawStats.buts),
+          icon: Target,
+          color: "text-gray-800",
+        },
+        {
+          label: "Phase",
+          value: "Groupes",
+          icon: Trophy,
+          color: "text-yellow-700",
+        },
+      ]);
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <div className="space-y-8">
       {/* En-tête hero */}
@@ -52,10 +119,11 @@ export default function Home() {
           <span className="text-sm font-medium">Tournoi en cours</span>
         </div>
         <h1 className="text-4xl font-bold bg-gradient-to-r from-yellow-600 to-gray-800 bg-clip-text text-transparent">
-          Tournoi de l'Amitié 2025
+          Tournoi de l&apos;Amitié 2025
         </h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Suivez en temps réel les matchs, classements et statistiques de notre tournoi de football
+          Suivez en temps réel les matchs, classements et statistiques de notre
+          tournoi de football
         </p>
       </div>
 
@@ -64,10 +132,18 @@ export default function Home() {
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={index} className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+            <Card
+              key={index}
+              className="relative overflow-hidden group hover:shadow-lg transition-all duration-300"
+            >
               <CardContent className="p-6">
                 <div className="flex items-center space-x-3">
-                  <div className={cn("p-2 rounded-lg bg-gray-100 group-hover:bg-gradient-to-r group-hover:from-yellow-100 group-hover:to-gray-100 transition-all", stat.color)}>
+                  <div
+                    className={cn(
+                      "p-2 rounded-lg bg-gray-100 group-hover:bg-gradient-to-r group-hover:from-yellow-100 group-hover:to-gray-100 transition-all",
+                      stat.color
+                    )}
+                  >
                     <Icon className="h-5 w-5" />
                   </div>
                   <div>
@@ -90,22 +166,28 @@ export default function Home() {
                 <Clock className="h-5 w-5 text-yellow-600" />
                 <CardTitle>Prochains Matchs</CardTitle>
               </div>
-              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                Aujourd'hui
+              <Badge
+                variant="secondary"
+                className="bg-yellow-100 text-yellow-800"
+              >
+                Aujourd&apos;hui
               </Badge>
             </div>
-            <CardDescription>Les matchs à venir aujourd'hui</CardDescription>
+            <CardDescription>
+              Les matchs à venir aujourd&apos;hui
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {prochainMatchs.map((match) => (
-              <div key={match.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+              <div
+                key={match.id}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+              >
                 <div className="flex-1">
                   <div className="font-medium text-sm">
                     {match.domicile} vs {match.exterieur}
                   </div>
-                  <div className="text-xs text-gray-500">
-                    {match.terrain}
-                  </div>
+                  <div className="text-xs text-gray-500">{match.terrain}</div>
                 </div>
                 <div className="text-sm font-mono bg-white px-2 py-1 rounded">
                   {match.heure}
@@ -132,7 +214,10 @@ export default function Home() {
           </CardHeader>
           <CardContent className="space-y-4">
             {derniersResultats.map((match) => (
-              <div key={match.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div
+                key={match.id}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              >
                 <div className="flex-1">
                   <div className="font-medium text-sm">
                     {match.domicile} vs {match.exterieur}
@@ -160,7 +245,9 @@ export default function Home() {
             <Target className="h-5 w-5 text-yellow-600" />
             <CardTitle>Meilleurs Buteurs</CardTitle>
           </div>
-          <CardDescription>Le classement des buteurs du tournoi</CardDescription>
+          <CardDescription>
+            Le classement des buteurs du tournoi
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -187,39 +274,6 @@ export default function Home() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Actions rapides */}
-      <div className="grid md:grid-cols-3 gap-4">
-        <Link href="/poules">
-          <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer group">
-            <CardContent className="p-6 text-center">
-              <Users className="h-8 w-8 mx-auto mb-3 text-gray-700 group-hover:scale-110 transition-transform" />
-              <h3 className="font-semibold mb-2">Classements des Poules</h3>
-              <p className="text-sm text-gray-600">Consultez les classements de toutes les poules</p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/phases-finales">
-          <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer group">
-            <CardContent className="p-6 text-center">
-              <Trophy className="h-8 w-8 mx-auto mb-3 text-yellow-600 group-hover:scale-110 transition-transform" />
-              <h3 className="font-semibold mb-2">Phases Finales</h3>
-              <p className="text-sm text-gray-600">Suivez le bracket du tournoi</p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/admin">
-          <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer group">
-            <CardContent className="p-6 text-center">
-              <Target className="h-8 w-8 mx-auto mb-3 text-gray-800 group-hover:scale-110 transition-transform" />
-              <h3 className="font-semibold mb-2">Administration</h3>
-              <p className="text-sm text-gray-600">Gérer les résultats et statistiques</p>
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
     </div>
   );
 }

@@ -23,3 +23,39 @@ export const deleteMatch = async (id: string) => {
     const ref = doc(db, "matchs", id);
     await deleteDoc(ref);
 };
+
+
+/**
+   * Récupère tous les matchs et les trie par phase
+   */
+export const getMatchsParPhase = async (): Promise<{
+    poules: Match[];
+    quarts: Match[];
+    demies: Match[];
+    finale: Match[];
+}> => {
+    const matchs = await getMatchs();
+
+    const poules = matchs.filter((m) =>
+        m.phase.toLowerCase().includes("poule")
+    );
+
+    const quarts = matchs.filter((m) =>
+        m.phase.toLowerCase().includes("quart")
+    );
+
+    const demies = matchs.filter((m) =>
+        m.phase.toLowerCase().includes("demi")
+    );
+
+    const finale = matchs.filter((m) =>
+        m.phase.toLowerCase().includes("finale")
+    );
+
+    return {
+        poules,
+        quarts,
+        demies,
+        finale,
+    };
+}

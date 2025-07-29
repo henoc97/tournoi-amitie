@@ -1,230 +1,42 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import ClassementTable from '@/components/ui/classement-table';
-import { Trophy, Users, Target, Award } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ClassementTable from "@/components/ui/classement-table";
+import { Trophy, Users, Target, Award } from "lucide-react";
+import { TournoiManager } from "@/helpers/tournoiManager"; // adapte le chemin !
+import { ClassementItem, Poule } from "@/entities/Poule";
+import { AccueilManager } from "@/helpers/accueilManager";
 
-// Mock data pour les poules
-const mockPoules = [
-  {
-    id: 'A',
-    nom: 'Poule A',
-    classement: [
-      {
-        position: 1,
-        equipe: 'FC Lions',
-        points: 9,
-        joues: 3,
-        gagnes: 3,
-        nuls: 0,
-        perdus: 0,
-        butsPour: 8,
-        butsContre: 2,
-        difference: 6
-      },
-      {
-        position: 2,
-        equipe: 'AS Eagles',
-        points: 6,
-        joues: 3,
-        gagnes: 2,
-        nuls: 0,
-        perdus: 1,
-        butsPour: 5,
-        butsContre: 4,
-        difference: 1
-      },
-      {
-        position: 3,
-        equipe: 'United FC',
-        points: 3,
-        joues: 3,
-        gagnes: 1,
-        nuls: 0,
-        perdus: 2,
-        butsPour: 3,
-        butsContre: 5,
-        difference: -2
-      },
-      {
-        position: 4,
-        equipe: 'Real Madrid',
-        points: 0,
-        joues: 3,
-        gagnes: 0,
-        nuls: 0,
-        perdus: 3,
-        butsPour: 1,
-        butsContre: 6,
-        difference: -5
-      }
-    ]
-  },
-  {
-    id: 'B',
-    nom: 'Poule B',
-    classement: [
-      {
-        position: 1,
-        equipe: 'Barcelona FC',
-        points: 7,
-        joues: 3,
-        gagnes: 2,
-        nuls: 1,
-        perdus: 0,
-        butsPour: 6,
-        butsContre: 2,
-        difference: 4
-      },
-      {
-        position: 2,
-        equipe: 'Chelsea United',
-        points: 5,
-        joues: 3,
-        gagnes: 1,
-        nuls: 2,
-        perdus: 0,
-        butsPour: 4,
-        butsContre: 3,
-        difference: 1
-      },
-      {
-        position: 3,
-        equipe: 'AC Milan',
-        points: 4,
-        joues: 3,
-        gagnes: 1,
-        nuls: 1,
-        perdus: 1,
-        butsPour: 3,
-        butsContre: 3,
-        difference: 0
-      },
-      {
-        position: 4,
-        equipe: 'PSG Academy',
-        points: 0,
-        joues: 3,
-        gagnes: 0,
-        nuls: 0,
-        perdus: 3,
-        butsPour: 2,
-        butsContre: 7,
-        difference: -5
-      }
-    ]
-  },
-  {
-    id: 'C',
-    nom: 'Poule C',
-    classement: [
-      {
-        position: 1,
-        equipe: 'Liverpool FC',
-        points: 6,
-        joues: 2,
-        gagnes: 2,
-        nuls: 0,
-        perdus: 0,
-        butsPour: 5,
-        butsContre: 1,
-        difference: 4
-      },
-      {
-        position: 2,
-        equipe: 'Arsenal FC',
-        points: 3,
-        joues: 2,
-        gagnes: 1,
-        nuls: 0,
-        perdus: 1,
-        butsPour: 3,
-        butsContre: 3,
-        difference: 0
-      },
-      {
-        position: 3,
-        equipe: 'Juventus FC',
-        points: 3,
-        joues: 2,
-        gagnes: 1,
-        nuls: 0,
-        perdus: 1,
-        butsPour: 2,
-        butsContre: 3,
-        difference: -1
-      },
-      {
-        position: 4,
-        equipe: 'Bayern Munich',
-        points: 0,
-        joues: 2,
-        gagnes: 0,
-        nuls: 0,
-        perdus: 2,
-        butsPour: 1,
-        butsContre: 4,
-        difference: -3
-      }
-    ]
-  },
-  {
-    id: 'D',
-    nom: 'Poule D',
-    classement: [
-      {
-        position: 1,
-        equipe: 'Manchester City',
-        points: 4,
-        joues: 2,
-        gagnes: 1,
-        nuls: 1,
-        perdus: 0,
-        butsPour: 3,
-        butsContre: 2,
-        difference: 1
-      },
-      {
-        position: 2,
-        equipe: 'Inter Milan',
-        points: 4,
-        joues: 2,
-        gagnes: 1,
-        nuls: 1,
-        perdus: 0,
-        butsPour: 2,
-        butsContre: 1,
-        difference: 1
-      },
-      {
-        position: 3,
-        equipe: 'Atletico Madrid',
-        points: 1,
-        joues: 2,
-        gagnes: 0,
-        nuls: 1,
-        perdus: 1,
-        butsPour: 1,
-        butsContre: 2,
-        difference: -1
-      },
-      {
-        position: 4,
-        equipe: 'Napoli FC',
-        points: 1,
-        joues: 2,
-        gagnes: 0,
-        nuls: 1,
-        perdus: 1,
-        butsPour: 1,
-        butsContre: 2,
-        difference: -1
-      }
-    ]
-  }
-];
+const managerStats = new AccueilManager();
 
 export default function PoulesPage() {
+  const [poules, setPoules] = useState<
+    { poule: Poule; classement: ClassementItem[] }[]
+  >([]);
+  const [stats, setStats] = useState<{
+    equipes: number;
+    matchs: number;
+    buts: number;
+  }>();
+
+  useEffect(() => {
+    const fetchClassements = async () => {
+      const manager = new TournoiManager();
+      const data = await manager.getClassementParPoule();
+      setPoules(data.reverse());
+    };
+
+    const fetchStats = async () => {
+      const rawStats = await managerStats.getStats();
+
+      setStats(rawStats);
+    };
+
+    fetchClassements();
+    fetchStats();
+  }, []);
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -241,21 +53,21 @@ export default function PoulesPage() {
         <Card>
           <CardContent className="p-4 text-center">
             <Users className="h-8 w-8 mx-auto text-blue-600 mb-2" />
-            <div className="text-2xl font-bold">16</div>
+            <div className="text-2xl font-bold">{stats?.equipes}</div>
             <div className="text-sm text-gray-600">Équipes</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <Trophy className="h-8 w-8 mx-auto text-green-600 mb-2" />
-            <div className="text-2xl font-bold">4</div>
+            <div className="text-2xl font-bold">{poules.length}</div>
             <div className="text-sm text-gray-600">Poules</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <Target className="h-8 w-8 mx-auto text-yellow-600 mb-2" />
-            <div className="text-2xl font-bold">24</div>
+            <div className="text-2xl font-bold">{stats?.matchs}</div>
             <div className="text-sm text-gray-600">Matchs joués</div>
           </CardContent>
         </Card>
@@ -270,7 +82,7 @@ export default function PoulesPage() {
 
       {/* Poules Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {mockPoules.map((poule) => (
+        {poules.map(({ poule, classement }) => (
           <Card key={poule.id}>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -279,14 +91,14 @@ export default function PoulesPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ClassementTable 
-                classement={poule.classement} 
+              <ClassementTable
+                classement={classement}
                 showQualification={true}
               />
               <div className="mt-4 p-3 bg-green-50 rounded-lg">
                 <p className="text-sm text-green-800">
                   <Trophy className="h-4 w-4 inline mr-1" />
-                  Les 2 premiers se qualifient pour les 1/8ᵉ de finale
+                  Les 2 premiers se qualifient pour les 1/4ᵉ de finale
                 </p>
               </div>
             </CardContent>

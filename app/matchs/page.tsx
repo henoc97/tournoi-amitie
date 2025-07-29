@@ -1,109 +1,47 @@
 "use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import MatchCard from '@/components/ui/match-card';
-import { Calendar, Clock, MapPin, Filter } from 'lucide-react';
-
-// Mock data pour les matchs
-const mockMatchs = [
-  {
-    id: '1',
-    date: '2025-01-16',
-    heure: '15:30',
-    terrain: 'Terrain Central',
-    phase: 'groupes',
-    poule: 'A',
-    equipes: {
-      domicile: 'FC Lions',
-      exterieur: 'AS Eagles'
-    },
-    termine: false
-  },
-  {
-    id: '2',
-    date: '2025-01-16',
-    heure: '17:00',
-    terrain: 'Terrain 2',
-    phase: 'groupes',
-    poule: 'A',
-    equipes: {
-      domicile: 'United FC',
-      exterieur: 'Real Madrid'
-    },
-    score: {
-      domicile: 2,
-      exterieur: 1
-    },
-    termine: true
-  },
-  {
-    id: '3',
-    date: '2025-01-17',
-    heure: '14:00',
-    terrain: 'Terrain 1',
-    phase: 'groupes',
-    poule: 'B',
-    equipes: {
-      domicile: 'Barcelona FC',
-      exterieur: 'Chelsea United'
-    },
-    termine: false
-  },
-  {
-    id: '4',
-    date: '2025-01-17',
-    heure: '16:30',
-    terrain: 'Terrain Central',
-    phase: 'groupes',
-    poule: 'B',
-    equipes: {
-      domicile: 'AC Milan',
-      exterieur: 'PSG Academy'
-    },
-    score: {
-      domicile: 3,
-      exterieur: 0
-    },
-    termine: true
-  },
-  {
-    id: '5',
-    date: '2025-01-18',
-    heure: '15:00',
-    terrain: 'Terrain 3',
-    phase: '1/8',
-    equipes: {
-      domicile: 'FC Lions',
-      exterieur: 'Barcelona FC'
-    },
-    termine: false
-  }
-];
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import MatchCard from "@/components/ui/match-card";
+import { Calendar, Clock, MapPin, Filter } from "lucide-react";
+import { Match } from "@/entities/Match";
+import { getMatchs } from "@/services/matchService";
+import { PHASES } from "@/entities/phases";
 
 export default function MatchsPage() {
-  const [selectedPhase, setSelectedPhase] = useState<string>('all');
-  
-  const today = new Date().toISOString().split('T')[0];
-  const matchsAujourdhui = mockMatchs.filter(match => match.date === today);
-  const prochains = mockMatchs.filter(match => match.date > today && !match.termine);
-  const termines = mockMatchs.filter(match => match.termine);
+  const [selectedPhase, setSelectedPhase] = useState<string>("ALL");
+  const [selectedTab, setSelectedTab] = useState<string>("aujourdhui");
+  const [allMatchs, setAllMatchs] = useState<Match[]>([]);
 
-  const filteredMatchs = selectedPhase === 'all' 
-    ? mockMatchs 
-    : mockMatchs.filter(match => match.phase === selectedPhase);
+  useEffect(() => {
+    const fetchMatchs = async () => {
+      const matchs = await getMatchs();
+      setAllMatchs(matchs);
+    };
 
-  const phases = ['all', 'groupes', '1/8', '1/4', '1/2', 'finale'];
-  const phaseLabels: Record<string, string> = {
-    'all': 'Tous les matchs',
-    'groupes': 'Phase de poules',
-    '1/8': '1/8ᵉ de finale',
-    '1/4': '1/4 de finale',
-    '1/2': '1/2 finale',
-    'finale': 'Finale'
-  };
+    fetchMatchs();
+  }, []);
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const matchsAujourdhui = allMatchs.filter((match) => match.date === today);
+  const prochains = allMatchs.filter(
+    (match) => match.date > today && !match.termine
+  );
+  const termines = allMatchs.filter((match) => match.termine);
+
+  const phases = [{ label: "Tous les matchs", value: "ALL" }, ...PHASES];
+
+  const filteredMatchs =
+    selectedPhase === "ALL"
+      ? allMatchs
+      : allMatchs.filter((match) =>
+          (match.phase || "")
+            .toLowerCase()
+            .includes(selectedPhase.toLowerCase())
+        );
 
   return (
     <div className="space-y-8">
@@ -128,12 +66,15 @@ export default function MatchsPage() {
           <div className="flex flex-wrap gap-2">
             {phases.map((phase) => (
               <Badge
-                key={phase}
-                variant={selectedPhase === phase ? "default" : "outline"}
+                key={phase.value}
+                variant={selectedPhase === phase.value ? "default" : "outline"}
                 className="cursor-pointer"
-                onClick={() => setSelectedPhase(phase)}
+                onClick={() => {
+                  setSelectedPhase(phase.value);
+                  setSelectedTab("tous");
+                }}
               >
-                {phaseLabels[phase]}
+                {phase.label}
               </Badge>
             ))}
           </div>
@@ -141,7 +82,11 @@ export default function MatchsPage() {
       </Card>
 
       {/* Tabs */}
-      <Tabs defaultValue="aujourdhui" className="w-full">
+      <Tabs
+        value={selectedTab}
+        onValueChange={setSelectedTab}
+        className="w-full"
+      >
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="aujourdhui">Aujourd'hui</TabsTrigger>
           <TabsTrigger value="prochains">À venir</TabsTrigger>
@@ -239,17 +184,7 @@ export default function MatchsPage() {
             <div className="flex items-center space-x-2">
               <MapPin className="h-4 w-4 text-green-600" />
               <span className="font-medium">Terrain Central</span>
-              <span className="text-sm text-gray-500">- Principal</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <MapPin className="h-4 w-4 text-blue-600" />
-              <span className="font-medium">Terrain 1</span>
-              <span className="text-sm text-gray-500">- Nord</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <MapPin className="h-4 w-4 text-red-600" />
-              <span className="font-medium">Terrain 2</span>
-              <span className="text-sm text-gray-500">- Sud</span>
+              <span className="text-sm text-gray-500">- Gakpodium</span>
             </div>
           </div>
         </CardContent>

@@ -14,7 +14,6 @@ import { useState, useEffect } from "react";
 import { getJoueursByEquipe } from "@/services/joueurService";
 import { updateMatch } from "@/services/matchService";
 import { updateJoueur } from "@/services/joueurService";
-import { updateClassement } from "@/services/pouleService";
 import { Match } from "@/entities/Match";
 
 export default function LiveMatchDialog({
@@ -107,17 +106,6 @@ export default function LiveMatchDialog({
       if (carton.joueurId) {
         const key = carton.type === "rouge" ? "cartonsRouges" : "cartonsJaunes";
         await updateJoueur(carton.joueurId, { [key]: 1 });
-      }
-
-      // ✅ MAJ classement (logique à ajuster)
-      if (match.phase === "POULE" && match.pouleId) {
-        await updateClassement(
-          match.pouleId,
-          match.phase,
-          match.equipes,
-          score,
-          termine
-        );
       }
 
       alert("Match mis à jour !");

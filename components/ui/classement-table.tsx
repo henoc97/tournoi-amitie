@@ -5,35 +5,23 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Trophy, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-
-interface ClassementItem {
-  position: number;
-  equipe: string;
-  points: number;
-  joues: number;
-  gagnes: number;
-  nuls: number;
-  perdus: number;
-  butsPour: number;
-  butsContre: number;
-  difference: number;
-}
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Trophy, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { ClassementItem } from "@/entities/Poule";
 
 interface ClassementTableProps {
   classement: ClassementItem[];
   showQualification?: boolean;
 }
 
-export default function ClassementTable({ 
-  classement, 
-  showQualification = false 
+export default function ClassementTable({
+  classement,
+  showQualification = false,
 }: ClassementTableProps) {
   const getQualificationBadge = (position: number) => {
     if (!showQualification) return null;
-    
+
     if (position <= 2) {
       return (
         <Badge className="bg-green-100 text-green-800">
@@ -46,8 +34,10 @@ export default function ClassementTable({
   };
 
   const getTrendIcon = (difference: number) => {
-    if (difference > 0) return <TrendingUp className="h-4 w-4 text-green-600" />;
-    if (difference < 0) return <TrendingDown className="h-4 w-4 text-red-600" />;
+    if (difference > 0)
+      return <TrendingUp className="h-4 w-4 text-green-600" />;
+    if (difference < 0)
+      return <TrendingDown className="h-4 w-4 text-red-600" />;
     return <Minus className="h-4 w-4 text-gray-400" />;
   };
 
@@ -71,11 +61,11 @@ export default function ClassementTable({
         </TableHeader>
         <TableBody>
           {classement.map((item) => (
-            <TableRow key={item.equipe}>
+            <TableRow key={item.equipeId}>
               <TableCell className="text-center font-medium">
                 {item.position}
               </TableCell>
-              <TableCell className="font-medium">{item.equipe}</TableCell>
+              <TableCell className="font-medium">{item.equipeNom}</TableCell>
               <TableCell className="text-center font-bold">
                 {item.points}
               </TableCell>
@@ -88,21 +78,22 @@ export default function ClassementTable({
               <TableCell className="text-center">
                 <div className="flex items-center justify-center space-x-1">
                   {getTrendIcon(item.difference)}
-                  <span className={
-                    item.difference > 0 
-                      ? 'text-green-600 font-medium' 
-                      : item.difference < 0 
-                      ? 'text-red-600 font-medium' 
-                      : 'text-gray-600'
-                  }>
-                    {item.difference > 0 ? '+' : ''}{item.difference}
+                  <span
+                    className={
+                      item.difference > 0
+                        ? "text-green-600 font-medium"
+                        : item.difference < 0
+                        ? "text-red-600 font-medium"
+                        : "text-gray-600"
+                    }
+                  >
+                    {item.difference > 0 ? "+" : ""}
+                    {item.difference}
                   </span>
                 </div>
               </TableCell>
               {showQualification && (
-                <TableCell>
-                  {getQualificationBadge(item.position)}
-                </TableCell>
+                <TableCell>{getQualificationBadge(item.position)}</TableCell>
               )}
             </TableRow>
           ))}
