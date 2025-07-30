@@ -50,30 +50,30 @@ export default function PhasesFinalesPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div className="text-center flex-1">
+          <div className="flex flex-wrap md:flex-nowrap items-center justify-center md:justify-between gap-4 p-4 bg-gray-50 rounded-lg">
+            <div className="text-center flex-1 min-w-[120px]">
               <div className="text-2xl font-bold text-gray-900">8</div>
               <div className="text-sm text-gray-600">Équipes qualifiées</div>
             </div>
-            <div className="text-center flex-1">
+            <div className="text-center flex-1 min-w-[120px]">
               <div className="text-2xl font-bold text-blue-600">
                 {pouleMatchs.length}
               </div>
               <div className="text-sm text-gray-600">Phase de Poule</div>
             </div>
-            <div className="text-center flex-1">
+            <div className="text-center flex-1 min-w-[120px]">
               <div className="text-2xl font-bold text-green-600">
                 {quarts.length}
               </div>
               <div className="text-sm text-gray-600">1/4 de finale</div>
             </div>
-            <div className="text-center flex-1">
+            <div className="text-center flex-1 min-w-[120px]">
               <div className="text-2xl font-bold text-yellow-600">
                 {demies.length}
               </div>
               <div className="text-sm text-gray-600">1/2 finale</div>
             </div>
-            <div className="text-center flex-1">
+            <div className="text-center flex-1 min-w-[120px]">
               <div className="text-2xl font-bold text-red-600">
                 {finale ? 1 : 0}
               </div>
@@ -90,7 +90,6 @@ export default function PhasesFinalesPage() {
             <CardTitle className="flex items-center">
               <Award className="h-5 w-5 mr-2 text-blue-600" />
               Phase de Poule
-              <Badge className="ml-2">Phase actuelle</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>

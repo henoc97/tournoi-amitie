@@ -47,8 +47,8 @@ export default function MatchsPage() {
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center py-6 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg shadow-lg">
-        <div className="flex items-center justify-center mb-2">
-          <Calendar className="h-8 w-8 mr-3" />
+        <div className="flex flex-col sm:flex-row items-center justify-center mb-2">
+          <Calendar className="h-8 w-8 mr-0 sm:mr-3 mb-2 sm:mb-0" />
           <h1 className="text-3xl font-bold">Calendrier des Matchs</h1>
         </div>
         <p className="text-lg opacity-90">Tous les matchs du tournoi</p>

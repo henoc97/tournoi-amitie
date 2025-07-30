@@ -70,8 +70,8 @@ export default function StatsPage() {
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center py-6 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg shadow-lg">
-        <div className="flex items-center justify-center mb-2">
-          <Target className="h-8 w-8 mr-3" />
+        <div className="flex flex-col sm:flex-row items-center justify-center mb-2">
+          <Target className="h-8 w-8 mr-0 sm:mr-3 mb-2 sm:mb-0" />
           <h1 className="text-3xl font-bold">Statistiques du Tournoi</h1>
         </div>
         <p className="text-lg opacity-90">
@@ -113,11 +113,19 @@ export default function StatsPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="buteurs" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="buteurs">Meilleurs buteurs</TabsTrigger>
-          <TabsTrigger value="passeurs">Meilleurs passeurs</TabsTrigger>
-          <TabsTrigger value="cartons">Cartons</TabsTrigger>
-        </TabsList>
+        <div className="flex flex-wrap gap-2 mb-10">
+          <TabsList className="flex flex-wrap w-full gap-2">
+            <TabsTrigger value="buteurs" className="flex-1 text-center">
+              Meilleurs buteurs
+            </TabsTrigger>
+            <TabsTrigger value="passeurs" className="flex-1 text-center">
+              Meilleurs passeurs
+            </TabsTrigger>
+            <TabsTrigger value="cartons" className="flex-1 text-center">
+              Cartons
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="buteurs" className="space-y-4">
           <Card>

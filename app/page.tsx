@@ -100,7 +100,7 @@ export default function Home() {
         },
         {
           label: "Phase",
-          value: "Groupes",
+          value: "Poules",
           icon: Trophy,
           color: "text-yellow-700",
         },
@@ -166,12 +166,6 @@ export default function Home() {
                 <Clock className="h-5 w-5 text-yellow-600" />
                 <CardTitle>Prochains Matchs</CardTitle>
               </div>
-              <Badge
-                variant="secondary"
-                className="bg-yellow-100 text-yellow-800"
-              >
-                {"à venir".toLocaleUpperCase()}
-              </Badge>
             </div>
             <CardDescription>Les matchs à venir</CardDescription>
           </CardHeader>
