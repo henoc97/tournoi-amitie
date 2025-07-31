@@ -80,7 +80,7 @@ export function Footer() {
                 </svg>
               </a>
               <a
-                href="https://www.tiktok.com/@tournoi.de.lamiti8"
+                href="https://vm.tiktok.com/ZMSTt7dFw/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-black hover:bg-gray-800 text-white p-3 rounded-full transition-colors duration-200"
