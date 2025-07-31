@@ -41,6 +41,7 @@ export default function EditJoueurDialog({
     const fetchEquipes = async () => {
       try {
         const data = await getEquipes();
+        data.sort((a, b) => a.nom.localeCompare(b.nom));
         setEquipes(data);
       } catch (error) {
         console.error("Erreur en récupérant les équipes", error);
