@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, MapPin, Trophy } from "lucide-react";
+import { Calendar, Clock, MapPin, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Match } from "@/entities/Match";
 
@@ -73,6 +73,10 @@ export default function MatchCard({ match, className }: MatchCardProps) {
               <Trophy className="h-4 w-4 text-red-600" />
             </div>
           </div>
+        </div>
+        <div className="text-xs text-gray-500 mt-1 flex items-center">
+          <Calendar className="h-4 w-4 mr-2 text-gray-500" />
+          {match.date.split("-").reverse().join("-")}
         </div>
       </CardContent>
     </Card>

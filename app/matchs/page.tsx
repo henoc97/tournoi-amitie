@@ -18,6 +18,13 @@ export default function MatchsPage() {
   useEffect(() => {
     const fetchMatchs = async () => {
       const matchs = await getMatchs();
+
+      matchs.sort((a, b) => {
+        const dateA = new Date(`${a.date}T${a.heure}`);
+        const dateB = new Date(`${b.date}T${b.heure}`);
+        return dateA.getTime() - dateB.getTime();
+      });
+
       setAllMatchs(matchs);
     };
 
