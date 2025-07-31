@@ -24,7 +24,8 @@ export default function PoulesPage() {
     const fetchClassements = async () => {
       const manager = new TournoiManager();
       const data = await manager.getClassementParPoule();
-      setPoules(data.reverse());
+      data.sort((a, b) => a.poule.nom.localeCompare(b.poule.nom));
+      setPoules(data);
     };
 
     const fetchStats = async () => {
