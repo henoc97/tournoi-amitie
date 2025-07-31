@@ -6,7 +6,15 @@ const matchsCollection = collection(db, "matchs");
 
 export const getMatchs = async (): Promise<Match[]> => {
     const snapshot = await getDocs(matchsCollection);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Match));
+    const matchs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Match));
+
+    matchs.sort((a, b) => {
+        const dateA = new Date(`${a.date}T${a.heure}`);
+        const dateB = new Date(`${b.date}T${b.heure}`);
+        return dateA.getTime() - dateB.getTime();
+    });
+
+    return matchs;
 };
 
 export const createMatch = async (match: Omit<Match, "id">) => {
