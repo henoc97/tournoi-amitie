@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Navigation } from "@/components/navigation";
+import { Footer } from "@/components/layout/footer";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
@@ -56,9 +57,12 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body>
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-yellow-50">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-yellow-50 flex flex-col">
           <Navigation />
-          <main className="container mx-auto px-4 py-8">{children}</main>
+          <main className="container mx-auto px-4 py-8 flex-grow">
+            {children}
+          </main>
+          <Footer />
           <Toaster />
         </div>
       </body>
