@@ -212,7 +212,7 @@ export default function PhasesFinalesPage() {
               <div>
                 <p className="font-medium">Qualifications</p>
                 <p className="text-sm text-gray-600">
-                  Les 2 premiers de chaque poule + les 8 meilleurs 3ᵉ
+                  Les 2 premiers de chaque poule
                 </p>
               </div>
             </div>
