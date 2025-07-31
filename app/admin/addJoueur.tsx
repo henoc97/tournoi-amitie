@@ -104,17 +104,6 @@ export default function AddJoueurDialog({
         </DialogHeader>
 
         <div className="space-y-2">
-          <Label>Nom</Label>
-          <Input
-            value={newJoueur.nom}
-            onChange={(e) =>
-              setNewJoueur({ ...newJoueur, nom: e.target.value })
-            }
-            placeholder="Ex. John Doe"
-          />
-        </div>
-
-        <div className="space-y-2">
           <Label>Équipe</Label>
           <select
             value={newJoueur.equipeId}
@@ -130,6 +119,17 @@ export default function AddJoueurDialog({
               </option>
             ))}
           </select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Nom</Label>
+          <Input
+            value={newJoueur.nom}
+            onChange={(e) =>
+              setNewJoueur({ ...newJoueur, nom: e.target.value })
+            }
+            placeholder="Ex. John Doe"
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-4">

@@ -93,15 +93,6 @@ export default function EditJoueurDialog({
         </DialogHeader>
 
         <div className="space-y-2">
-          <Label>Nom </Label>
-          <Input
-            value={form.nom}
-            onChange={(e) => setForm({ ...form, nom: e.target.value })}
-            placeholder="Ex. John Doe"
-          />
-        </div>
-
-        <div className="space-y-2">
           <Label>Équipe </Label>
           <select
             value={form.equipeId}
@@ -115,6 +106,15 @@ export default function EditJoueurDialog({
               </option>
             ))}
           </select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Nom </Label>
+          <Input
+            value={form.nom}
+            onChange={(e) => setForm({ ...form, nom: e.target.value })}
+            placeholder="Ex. John Doe"
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-4">

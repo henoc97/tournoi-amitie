@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -87,6 +87,7 @@ export default function AdminPage() {
     }
   };
 
+  var grouped: any;
   const fetchEquipes = async (poulesRef: Poule[]) => {
     try {
       const data = await getEquipes();
@@ -97,15 +98,13 @@ export default function AdminPage() {
         return pouleA.localeCompare(pouleB) || a.nom.localeCompare(b.nom);
       });
 
-      const grouped = poulesRef
+      grouped = poulesRef
         .sort((a, b) => a.nom.localeCompare(b.nom))
         .map((poule) => ({
           pouleNom: poule.nom,
           equipes: data.filter((eq) => eq.pouleId === poule.id),
         }))
         .filter((group) => group.equipes.length > 0);
-
-      console.log("grouped", grouped);
 
       setEquipesGroupe(grouped);
     } catch (error) {
@@ -118,10 +117,10 @@ export default function AdminPage() {
       const joueursData = await getJoueurs();
 
       // Aplatir toutes les équipes regroupées
-      const allEquipes = equipesGroupe.flatMap((group) => group.equipes);
+      const allEquipes = grouped.flatMap((group: any) => group.equipes);
 
       const joueursAvecEquipe = joueursData.map((joueur) => {
-        const equipe = allEquipes.find((eq) => eq.id === joueur.equipeId);
+        const equipe = allEquipes.find((eq: any) => eq.id === joueur.equipeId);
         return {
           ...joueur,
           equipeNom: equipe ? equipe.nom : "Équipe inconnue",
@@ -465,8 +464,8 @@ export default function AdminPage() {
                     </TableHeader>
                     <TableBody>
                       {equipesGroupe.map((group) => (
-                        <>
-                          <TableRow key={group.pouleNom}>
+                        <React.Fragment key={group.pouleNom}>
+                          <TableRow>
                             <TableCell
                               colSpan={3}
                               className="font-bold bg-gray-100"
@@ -481,7 +480,7 @@ export default function AdminPage() {
                               <TableCell>{group.pouleNom}</TableCell>
                             </TableRow>
                           ))}
-                        </>
+                        </React.Fragment>
                       ))}
                     </TableBody>
                   </Table>
