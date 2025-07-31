@@ -49,6 +49,12 @@ import AddJoueurDialog from "./addJoueur";
 import { listenAuthState } from "@/services/user.service";
 import { User } from "@/entities/User";
 import { AccueilManager } from "@/helpers/accueilManager";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const manager = new AccueilManager();
 
@@ -497,7 +503,6 @@ export default function AdminPage() {
                     <Target className="h-5 w-5 mr-2 text-yellow-600" />
                     Gestion des joueurs
                   </div>
-                  {/* Dialog add new player */}
                   <AddJoueurDialog onJoueurCreated={fetchJoueurs} />
                 </CardTitle>
               </CardHeader>
@@ -511,61 +516,83 @@ export default function AdminPage() {
                     </p>
                   </div>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Nom</TableHead>
-                        <TableHead>Équipe</TableHead>
-                        <TableHead>Buts</TableHead>
-                        <TableHead>Passes</TableHead>
-                        <TableHead>Cartons Jaunes</TableHead>
-                        <TableHead>Cartons Rouges</TableHead>
-                        <TableHead>Matchs</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {joueurs.map((joueur) => (
-                        <TableRow key={joueur.id}>
-                          <TableCell>{joueur.nom}</TableCell>
-                          <TableCell>{joueur.equipeNom}</TableCell>
-                          <TableCell>{joueur.buts}</TableCell>
-                          <TableCell>{joueur.passes}</TableCell>
-                          <TableCell>{joueur.cartonsJaunes}</TableCell>
-                          <TableCell>{joueur.cartonsRouges}</TableCell>
-                          <TableCell>{joueur.matchs}</TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem asChild>
-                                  <EditJoueurDialog
-                                    joueur={joueur}
-                                    onJoueurUpdated={fetchJoueurs}
-                                  />
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={async () => {
-                                    if (confirm("Supprimer ce joueur ?")) {
-                                      await deleteJoueur(joueur.id!);
-                                      fetchJoueurs();
-                                    }
-                                  }}
-                                  className="text-red-600"
-                                >
-                                  <Trash className="h-4 w-4 mr-2" />
-                                  <span className="font-bold">Supprimer</span>
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <Accordion type="multiple" className="w-full">
+                    {(
+                      Object.entries(
+                        joueurs.reduce((acc: any, joueur: any) => {
+                          acc[joueur.equipeNom] = acc[joueur.equipeNom] || [];
+                          acc[joueur.equipeNom].push(joueur);
+                          return acc;
+                        }, {} as Record<string, (Joueur & { equipeNom?: string })[]>)
+                      ) as [string, (Joueur & { equipeNom?: string })[]][]
+                    ).map(([equipeNom, joueursEquipe]) => (
+                      <AccordionItem key={equipeNom} value={equipeNom}>
+                        <AccordionTrigger className="text-lg font-semibold">
+                          {equipeNom}
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Nom</TableHead>
+                                <TableHead>Buts</TableHead>
+                                <TableHead>Passes</TableHead>
+                                <TableHead>Cartons Jaunes</TableHead>
+                                <TableHead>Cartons Rouges</TableHead>
+                                <TableHead>Matchs</TableHead>
+                                <TableHead>Actions</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {joueursEquipe.map((joueur: any) => (
+                                <TableRow key={joueur.id}>
+                                  <TableCell>{joueur.nom}</TableCell>
+                                  <TableCell>{joueur.buts}</TableCell>
+                                  <TableCell>{joueur.passes}</TableCell>
+                                  <TableCell>{joueur.cartonsJaunes}</TableCell>
+                                  <TableCell>{joueur.cartonsRouges}</TableCell>
+                                  <TableCell>{joueur.matchs}</TableCell>
+                                  <TableCell>
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon">
+                                          <MoreVertical className="h-4 w-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        <DropdownMenuItem asChild>
+                                          <EditJoueurDialog
+                                            joueur={joueur}
+                                            onJoueurUpdated={fetchJoueurs}
+                                          />
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                          onClick={async () => {
+                                            if (
+                                              confirm("Supprimer ce joueur ?")
+                                            ) {
+                                              await deleteJoueur(joueur.id!);
+                                              fetchJoueurs();
+                                            }
+                                          }}
+                                          className="text-red-600"
+                                        >
+                                          <Trash className="h-4 w-4 mr-2" />
+                                          <span className="font-bold">
+                                            Supprimer
+                                          </span>
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
                 )}
               </CardContent>
             </Card>
