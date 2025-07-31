@@ -6,24 +6,13 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useState } from "react";
-import {
-  Trophy,
-  Calendar,
-  Users,
-  Target,
-  BarChart3,
-  Home,
-  Settings,
-  Menu,
-  X,
-} from "lucide-react";
+import { Trophy, Calendar, Users, Target, Home, Menu, X } from "lucide-react";
 
 const navigation = [
   { name: "Accueil", href: "/", icon: Home },
   { name: "Poules", href: "/poules", icon: Users },
   { name: "Matchs", href: "/matchs", icon: Calendar },
   { name: "Buteurs", href: "/stats", icon: Target },
-  { name: "Passeurs", href: "/stats", icon: BarChart3 },
   { name: "Phases Finales", href: "/phases-finales", icon: Trophy },
 ];
 

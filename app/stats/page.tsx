@@ -42,10 +42,8 @@ export default function StatsPage() {
     }
   };
   const [buteurs, setButeurs] = useState<Buteur[]>([]);
-  const [passeurs, setPasseurs] = useState<Passeur[]>([]);
   const [cartons, setCartons] = useState<Carton[]>([]);
   const [totalButs, setTotalButs] = useState(0);
-  const [totalPasses, setTotalPasses] = useState(0);
   const [totalCartonsJaunes, setTotalCartonsJaunes] = useState(0);
   const [totalCartonsRouges, setTotalCartonsRouges] = useState(0);
   const [fairPlay, setFairPlay] = useState<EquipeFairPlay | null>();
@@ -53,11 +51,9 @@ export default function StatsPage() {
   useEffect(() => {
     const fetchData = async () => {
       setButeurs(await StatsManager.getClassementButeurs());
-      setPasseurs(await StatsManager.getClassementPasseurs());
       setCartons(await StatsManager.getClassementCartons());
 
       setTotalButs(await StatsManager.getTotalButs());
-      setTotalPasses(await StatsManager.getTotalPasses());
       setTotalCartonsJaunes(await StatsManager.getTotalCartonsJaunes());
       setTotalCartonsRouges(await StatsManager.getTotalCartonsRouges());
 
@@ -80,19 +76,12 @@ export default function StatsPage() {
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
         <Card>
           <CardContent className="p-4 text-center">
             <Flame className="h-8 w-8 mx-auto text-red-600 mb-2" />
             <div className="text-2xl font-bold">{totalButs}</div>
             <div className="text-sm text-gray-600">Buts marqués</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Users className="h-8 w-8 mx-auto text-blue-600 mb-2" />
-            <div className="text-2xl font-bold">{totalPasses}</div>
-            <div className="text-sm text-gray-600">Passes décisives</div>
           </CardContent>
         </Card>
         <Card>
@@ -117,9 +106,6 @@ export default function StatsPage() {
           <TabsList className="flex flex-wrap w-full gap-2">
             <TabsTrigger value="buteurs" className="flex-1 text-center">
               Meilleurs buteurs
-            </TabsTrigger>
-            <TabsTrigger value="passeurs" className="flex-1 text-center">
-              Meilleurs passeurs
             </TabsTrigger>
             <TabsTrigger value="cartons" className="flex-1 text-center">
               Cartons
@@ -176,55 +162,6 @@ export default function StatsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="passeurs" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Users className="h-5 w-5 mr-2 text-blue-600" />
-                Classement des passeurs
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">#</TableHead>
-                    <TableHead>Joueur</TableHead>
-                    <TableHead>Équipe</TableHead>
-                    <TableHead className="text-center">Passes</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {passeurs.map((passeur, index) => (
-                    <TableRow key={passeur.id}>
-                      <TableCell>
-                        <div className="flex items-center justify-center">
-                          {getMedalIcon(index + 1)}
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center space-x-2">
-                          <span>{passeur.nom}</span>
-                          {index + 1 === 1 && (
-                            <Badge className="bg-blue-100 text-blue-800">
-                              <Users className="h-3 w-3 mr-1" />
-                              Meilleur
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>{passeur.equipe}</TableCell>
-                      <TableCell className="text-center font-bold text-blue-600">
-                        {passeur.passes}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
         <TabsContent value="cartons" className="space-y-4">
           <Card>
             <CardHeader>
@@ -252,9 +189,6 @@ export default function StatsPage() {
                       <TableCell className="font-medium">
                         <div className="flex items-center space-x-2">
                           <span>{joueur.nom}</span>
-                          {joueur.rouges > 0 && (
-                            <Badge variant="destructive">Suspendu</Badge>
-                          )}
                         </div>
                       </TableCell>
                       <TableCell>{joueur.equipe}</TableCell>
