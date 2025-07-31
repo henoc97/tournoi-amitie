@@ -93,7 +93,7 @@ export default function AdminPage() {
     }
   };
 
-  var grouped: any;
+  // var grouped: any;
   const fetchEquipes = async (poulesRef: Poule[]) => {
     try {
       const data = await getEquipes();
@@ -104,7 +104,7 @@ export default function AdminPage() {
         return pouleA.localeCompare(pouleB) || a.nom.localeCompare(b.nom);
       });
 
-      grouped = poulesRef
+      const grouped = poulesRef
         .sort((a, b) => a.nom.localeCompare(b.nom))
         .map((poule) => ({
           pouleNom: poule.nom,
@@ -123,7 +123,7 @@ export default function AdminPage() {
       const joueursData = await getJoueurs();
 
       // Aplatir toutes les équipes regroupées
-      const allEquipes = grouped.flatMap((group: any) => group.equipes);
+      const allEquipes = equipesGroupe.flatMap((group: any) => group.equipes);
 
       const joueursAvecEquipe = joueursData.map((joueur) => {
         const equipe = allEquipes.find((eq: any) => eq.id === joueur.equipeId);
@@ -222,6 +222,12 @@ export default function AdminPage() {
       console.error("Erreur lors du chargement des données :", error);
     });
   }, []);
+
+  useEffect(() => {
+    if (equipesGroupe.length > 0) {
+      fetchJoueurs();
+    }
+  }, [equipesGroupe]);
 
   if (user)
     return (

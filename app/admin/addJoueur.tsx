@@ -82,6 +82,7 @@ export default function AddJoueurDialog({
         cartonsRouges: 0,
         matchs: 0,
       });
+
       onJoueurCreated?.();
     } catch (error) {
       console.error(error);
