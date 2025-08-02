@@ -1,5 +1,5 @@
 import "./globals.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/layout/footer";
 import { Toaster } from "@/components/ui/sonner";
@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   title: "Tournoi de l'Amitié - Suivi en temps réel",
   description:
     "Le Tournoi de l'Amitié : application moderne pour suivre votre tournoi de football en temps réel, classements, matchs, statistiques et phases finales.",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
   metadataBase: new URL("https://tournoi-amitie.vercel.app/"),
   openGraph: {
     title: "Tournoi de l'Amitié - Suivi en temps réel",
@@ -47,7 +52,13 @@ export const metadata: Metadata = {
       "https://tournoi-amitie.vercel.app/price.jpg",
     ],
   },
-  viewport: "width=device-width, initial-scale=1",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
