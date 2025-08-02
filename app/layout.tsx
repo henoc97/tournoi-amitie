@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/layout/footer";
 import { Toaster } from "@/components/ui/sonner";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "Tournoi de l'Amitié - Suivi en temps réel",
@@ -61,6 +62,7 @@ export default function RootLayout({
           <Navigation />
           <main className="container mx-auto px-4 py-8 flex-grow">
             {children}
+            <Analytics />
           </main>
           <Footer />
           <Toaster />
