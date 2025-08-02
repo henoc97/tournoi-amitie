@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, MapPin, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Match } from "@/entities/Match";
+import { getMatchStatus } from "@/helpers/getMatchStatus";
 
 interface MatchCardProps {
   match: Match;
@@ -14,14 +15,12 @@ interface MatchCardProps {
 export default function MatchCard({ match, className }: MatchCardProps) {
   const isToday =
     new Date(match.date).toDateString() === new Date().toDateString();
-
+  const status = getMatchStatus(match);
   return (
     <Card className={cn("hover:shadow-md transition-shadow", className)}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
-            <Clock className="h-4 w-4 text-gray-500" />
-            <span className="text-sm text-gray-600">{match.heure}</span>
             {isToday && (
               <Badge
                 variant="secondary"
@@ -35,7 +34,7 @@ export default function MatchCard({ match, className }: MatchCardProps) {
             variant={match.termine ? "default" : "outline"}
             className={match.termine ? "bg-blue-100 text-blue-800" : ""}
           >
-            {match.phase === "groupes" ? "Phase de poules" : match.phase}
+            {match.phase === "POULE" ? "Phase de poules" : match.phase}
           </Badge>
         </div>
 
@@ -50,7 +49,20 @@ export default function MatchCard({ match, className }: MatchCardProps) {
           </div>
 
           <div className="px-4">
-            {match.termine && match.score ? (
+            {status === "En cours" ? (
+              <div className="text-center">
+                <div className="text-xl font-medium text-gray-400">
+                  {match.score ? (
+                    `${match.score.domicile} - ${match.score.exterieur}`
+                  ) : (
+                    <span className="text-gray-400">0 - 0</span>
+                  )}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {match.heure} - En cours
+                </div>
+              </div>
+            ) : match.termine && match.score ? (
               <div className="text-center">
                 <div className="text-2xl font-bold text-gray-900">
                   {match.score.domicile} - {match.score.exterieur}
