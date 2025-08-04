@@ -46,7 +46,6 @@ export default function StatsPage() {
   const [totalButs, setTotalButs] = useState(0);
   const [totalCartonsJaunes, setTotalCartonsJaunes] = useState(0);
   const [totalCartonsRouges, setTotalCartonsRouges] = useState(0);
-  const [fairPlay, setFairPlay] = useState<EquipeFairPlay | null>();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,8 +55,6 @@ export default function StatsPage() {
       setTotalButs(await StatsManager.getTotalButs());
       setTotalCartonsJaunes(await StatsManager.getTotalCartonsJaunes());
       setTotalCartonsRouges(await StatsManager.getTotalCartonsRouges());
-
-      setFairPlay(await StatsManager.getClassementFairPlay());
     };
     fetchData();
   }, []);
@@ -215,45 +212,6 @@ export default function StatsPage() {
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Fair-play */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Award className="h-5 w-5 mr-2 text-green-600" />
-            Classement Fair-Play
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-6">
-            <Trophy className="h-12 w-12 mx-auto text-green-600 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">
-              {fairPlay?.equipe ?? "Aucune équipe"}
-            </h3>
-            <p className="text-gray-600">
-              Équipe avec le meilleur comportement
-            </p>
-
-            {/* Badges dynamiques */}
-            <div className="mt-2 flex justify-center gap-2 flex-wrap">
-              {fairPlay?.totalJaunes && fairPlay.totalJaunes > 0 && (
-                <Badge className="bg-green-100 text-green-800">
-                  Seulement {fairPlay.totalJaunes} carton
-                  {fairPlay.totalJaunes > 1 ? "s" : ""} jaune
-                  {fairPlay.totalJaunes > 1 ? "s" : ""}
-                </Badge>
-              )}
-              {fairPlay?.totalRouges && fairPlay.totalRouges > 0 && (
-                <Badge className="bg-green-100 text-green-800">
-                  Seulement {fairPlay.totalRouges} carton
-                  {fairPlay.totalRouges > 1 ? "s" : ""} rouge
-                  {fairPlay.totalRouges > 1 ? "s" : ""}
-                </Badge>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

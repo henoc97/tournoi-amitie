@@ -144,37 +144,4 @@ export class StatsManager {
         const joueurs = await getJoueurs();
         return joueurs.reduce((total, j) => total + (j.cartonsRouges ?? 0), 0);
     }
-
-    static async getClassementFairPlay(): Promise<EquipeFairPlay | null> {
-        const joueurs = await getJoueurs();
-
-        const fairPlayMap = new Map<string, { jaunes: number; rouges: number }>();
-
-        joueurs.forEach((j) => {
-            const current = fairPlayMap.get(j.equipeId) || { jaunes: 0, rouges: 0 };
-            fairPlayMap.set(j.equipeId, {
-                jaunes: current.jaunes + (j.cartonsJaunes ?? 0),
-                rouges: current.rouges + (j.cartonsRouges ?? 0),
-            });
-        });
-
-        const equipesAvecNom = await Promise.all(
-            Array.from(fairPlayMap.entries()).map(async ([equipeId, c]) => {
-                const equipe = await getEquipeById(equipeId);
-                return {
-                    equipeId,
-                    equipe: equipe ? equipe.nom : "Inconnu",
-                    totalJaunes: c.jaunes,
-                    totalRouges: c.rouges,
-                    totalCartons: c.jaunes + c.rouges,
-                };
-            })
-        );
-
-        equipesAvecNom.sort((a, b) => a.totalCartons - b.totalCartons);
-
-        return equipesAvecNom[0] || null;
-    }
-
-
 }
